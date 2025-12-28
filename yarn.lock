@@ -182,10 +182,10 @@
   resolved "https://registry.yarnpkg.com/@pkgjs/parseargs/-/parseargs-0.11.0.tgz#a77ea742fab25775145434eb1d2328cf5013ac33"
   integrity sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==
 
-"@smbcheeky/error-object@^1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@smbcheeky/error-object/-/error-object-1.1.4.tgz#56bf5b9f4a6b93dde369433d5209caea9f835af0"
-  integrity sha512-7/GK475QsKBHR/c2X8rcpV+Y+LZShVZxIbJt+OgGcXTkAcH2qSXFtLI1R1Ndbi1fgZ8C8BZyR/en3GZ4h+kKGg==
+"@smbcheeky/error-object@^1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@smbcheeky/error-object/-/error-object-1.1.5.tgz#ae93604ac51c6c0c0867565ec9de159fbd085513"
+  integrity sha512-2/bJULja6o4ZACYYvd/VkqV4ZTYm/piOoVuc0fFFA9dYe7xSrG+gakPB4WzhH6wWQ+okzYcopq3LzSo+i74bWA==
 
 ansi-regex@^5.0.1:
   version "5.0.1"
