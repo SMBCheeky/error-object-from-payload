@@ -1,7 +1,7 @@
 {
   "name": "@smbcheeky/error-object-from-payload",
   "description": "Create ErrorObjects from any payload with simple rules and benefit from step-to-step debugging logs for the entire process.",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -12,7 +12,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@smbcheeky/error-object": "^1.1.4"
+    "@smbcheeky/error-object": "^1.1.5"
   },
   "devDependencies": {
     "tsup": "^6.5.0",
