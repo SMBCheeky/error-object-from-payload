@@ -1,13 +1,13 @@
-import { addPrefixPathVariants, ErrorObject, ErrorObjectTransformState } from '@smbcheeky/error-object';
-import from from '../src';
+import { ErrorObject } from '@smbcheeky/error-object';
+import { addPrefixPathVariants, ErrorObjectTransformState, fromPayload } from '@smbcheeky/error-object-from-payload';
 
 /*
  *
  * If you reached this file, you probably didn't read the README.md file.
  * Just take 30 seconds and at least read this part.
  *
- * - use both `new ErrorObject() and `from()` in your codebase, as they are both useful.
- * - wrap everything with and `from()` call, and don't forget to use both `error` and `force` properties.
+ * - use both `new ErrorObject() and `fromPayload()` in your codebase, as they are both useful.
+ * - wrap everything with and `fromPayload()` call, and don't forget to use both `error` and `force` properties.
  * - use `.log(<TAG>)` and `.debugLog(<TAG>)` to log the error object inline and make it traceable with a unique tag.
  * - use checks like .isGeneric() and .isFallback() to check if the error object is a generic or fallback error.
  *
@@ -42,11 +42,11 @@ const runStoryExample = () => {
   //   }
   //
   // Here are a couple of easy steps to map out a new error object:
-  // 1. Before you start, check the result of `from(object)?.error?.log('LOG')` and see
+  // 1. Before you start, check the result of `fromPayload(object)?.error?.log('LOG')` and see
   //    what it returns. This will help you understand if you need to make any adjustments.
   //      - It seems there is no log "[LOG]" in the console, so we continue with the next step.
   //
-  // 2. Continue with `from(object)?.force?.verboseLog('LOG')` and see what it returns.
+  // 2. Continue with `fromPayload(object)?.force?.verboseLog('LOG')` and see what it returns.
   //  "processingErrors": [
   //     {
   //       "errorCode": "unknownCodeOrMessage",
@@ -147,7 +147,7 @@ const runStoryExample = () => {
   // 12. Stand-up and marvel at the code that should've taken 5 minutes at most to complete and instead took 2 days :/
   //     - I'm pretty sure next time we'll both do better ;)
 
-  from(
+  fromPayload(
     {
       error: true, // added after speaking to the backend developer
       errors: [
@@ -245,7 +245,7 @@ const runExample1 = () => {
 
   type ErrorObjectCode1 = keyof typeof ErrorObjectMessage1;
 
-  from(
+  fromPayload(
     { code: 'generic-again' },
     {
       transform: (beforeTransform: ErrorObjectTransformState) =>
@@ -324,7 +324,7 @@ const runExample2 = () => {
   };
 
   const createAuthError2 = (code: string) => {
-    return from(
+    return fromPayload(
       {
         code,
         domain: 'auth',
@@ -361,7 +361,7 @@ const runExample3 = () => {
   );
   console.log('into the final list of paths', pathToCode, '\n');
 
-  from(
+  fromPayload(
     {
       code: 'declined',
       error: {
@@ -432,7 +432,7 @@ const runExample4 = () => {
     '\n-Example 4------------------------------------------------------------------------------\n',
   );
 
-  from(
+  fromPayload(
     {
       error: {
         message: 'battery-low',
@@ -474,7 +474,7 @@ const runExample5 = () => {
   );
 
   // Recommended approach, very simple and to the point
-  from(
+  fromPayload(
     {
       status: 'error',
       message: 'Validation failed',
@@ -498,7 +498,7 @@ const runExample5 = () => {
   )?.force?.debugLog('1');
 
   // Second approach, possible, but very involved
-  from(
+  fromPayload(
     {
       status: 'error',
       message: 'Validation failed',
@@ -525,7 +525,7 @@ const runExample5 = () => {
           message = list?.[0] ?? message;
         }
         catch (error) {
-          console.log(from(error)?.force?.debugLog('PARSE1'));
+          console.log(fromPayload(error)?.force?.debugLog('PARSE1'));
         }
         // I choose to say something went wrong here instead of sending back an unknown value
         return {
@@ -538,7 +538,7 @@ const runExample5 = () => {
   )?.force?.debugLog('2');
 
   // or another way to write the above
-  from(
+  fromPayload(
     {
       status: 'error',
       message: 'Validation failed',
@@ -565,7 +565,7 @@ const runExample5 = () => {
       return Object.values(JSON.parse(old))?.[0]?.toString() ?? old;
     }
     catch (error) {
-      console.log(from(error)?.force?.debugLog('PARSE1'));
+      console.log(fromPayload(error)?.force?.debugLog('PARSE1'));
     }
     return old;
   })
@@ -608,14 +608,14 @@ const runExample6 = () => {
     };
 
     // First approach is to feed only the body to the error object builder - simple, elegant, recommended
-    from(JSON.parse(response?.body), {
+    fromPayload(JSON.parse(response?.body), {
       pathToNumberCode: ['code'],
       pathToMessage: ['error'],
     }).force?.debugLog('LOG');
 
     // Second approach is to use a transform function to parse the body
     // You can access both the input object, or you can use the fact that the library stringifies the value found at any path, if it's an object/array.
-    from(response, {
+    fromPayload(response, {
       pathToMessage: ['body'],
       transform: (beforeTransform: ErrorObjectTransformState, inputObject: any): ErrorObjectTransformState => {
         let numberCode = beforeTransform.numberCode;
@@ -694,7 +694,7 @@ const runExample7 = () => {
     '\n-Example 7------------------------------------------------------------------------------\n',
   );
 
-  from(
+  fromPayload(
     {
       'error': {
         'code': 'auth/invalid-email',
@@ -706,7 +706,7 @@ const runExample7 = () => {
 
   // Now what if the errors looked like this?
   // How will you parse it? Simple... use `pathToErrors` - you will have access to all 3 errorObjects via .nextErrors property.
-  from(
+  fromPayload(
     {
       'error': {
         'code': 'auth/invalid-email',
@@ -757,7 +757,7 @@ const runExample8 = () => {
     '\n-Example 8------------------------------------------------------------------------------\n',
   );
 
-  from({
+  fromPayload({
     'title': 'Unauthorized',
     'detail': 'Invalid or expired token.',
     'type': 'https://api.twitter.com/2/problems/invalid-auth',
@@ -794,7 +794,7 @@ const runExample9 = () => {
     '\n-Example 9------------------------------------------------------------------------------\n',
   );
 
-  from({
+  fromPayload({
     'message': 'The given data was invalid.',
     'errors': {
       'email': [
@@ -810,7 +810,7 @@ const runExample9 = () => {
 
   // or maybe
 
-  from({
+  fromPayload({
     'message': 'The given data was invalid.',
     'errors': {
       'email': [
@@ -851,7 +851,7 @@ const runExample10 = () => {
   // Fun fact: This example was 100% written by AI. This means that once you write 2-3 examples, it will be able to
   // write the next one without any help from you...
   // On a serious note: Please triple check the AI output...
-  from({
+  fromPayload({
     'kind': 'AdmissionReview',
     'apiVersion': 'admission.k8s.io/v1',
     'response': {
@@ -898,7 +898,7 @@ const runExample11 = () => {
   );
 
   // Even if the library detects an array of errors, if there are not more than 1 error, it will return as if it was a single error.
-  from({
+  fromPayload({
     'response': {
       'data': {
         'message': 'Not Found',
@@ -930,7 +930,7 @@ const runExample12 = () => {
 
   new ErrorObject({ code: '', message: 'Something went wrong.', domain: 'auth' }).debugLog('LOG');
 
-  from({ code: '', message: 'Something went wrong', domain: 'auth' })?.force?.debugLog('LOG');
+  fromPayload({ code: '', message: 'Something went wrong', domain: 'auth' })?.force?.debugLog('LOG');
 
   // Example 12 output:
   //

@@ -27,7 +27,7 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@smbcheeky/error-object-from@file:..":
+"@smbcheeky/error-object-from-payload@file:..":
   version "1.1.5"
   resolved "file:.."
   dependencies:

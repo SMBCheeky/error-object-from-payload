@@ -1,23 +1,24 @@
 [![License](https://img.shields.io/npm/l/@smbcheeky/error-object)](LICENSE_FILE)
-[![deno.bundlejs.com](https://deno.bundlejs.com/badge?q=@smbcheeky/error-object-from&treeshake=[*])](https://deno.bundlejs.com/?q=@smbcheeky/error-object-from&treeshake=[*])
-[![npm downloads](https://img.shields.io/npm/dm/@smbcheeky/error-object-from)](https://www.npmjs.com/package/@smbcheeky/error-object-from)
-[![GitHub last commit](https://img.shields.io/github/last-commit/smbcheeky/error-object-from)](https://github.com/smbcheeky/error-object-from)
-[![GitHub stars](https://img.shields.io/github/stars/smbcheeky/error-object-from)](https://img.shields.io/github/stars/smbcheeky/error-object-from)
+[![deno.bundlejs.com](https://deno.bundlejs.com/badge?q=@smbcheeky/error-object-from-payload&treeshake=[*])](https://deno.bundlejs.com/?q=@smbcheeky/error-object-from-payload&treeshake=[*])
+[![npm downloads](https://img.shields.io/npm/dm/@smbcheeky/error-object-from-payload)](https://www.npmjs.com/package/@smbcheeky/error-object-from-payload)
+[![GitHub last commit](https://img.shields.io/github/last-commit/smbcheeky/error-object-from-payload)](https://github.com/smbcheeky/error-object-from-payload)
+[![GitHub stars](https://img.shields.io/github/stars/smbcheeky/error-object-from-payload)](https://img.shields.io/github/stars/smbcheeky/error-object-from-payload)
 
 ## TL;DR
 
-- Install the package `npm install @smbcheeky/error-object @smbcheeky/error-object-from`
-- Write `from(<pick an api response with an error>).force.verboseLog('LOG')` and use the info provided to
+- Install the package `npm install @smbcheeky/error-object @smbcheeky/error-object-from-payload`
+- Write `fromPayload(<pick an api response with an error>).force.verboseLog('LOG')` and use the info provided to
   map your error
 - Switch the .force with .error, and now you have an error object
 - :tada:
-- oh... and check the [playground](https://github.com/SMBCheeky/error-object-from/blob/main/playground/index.ts) file
+- oh... and check the [playground](https://github.com/SMBCheeky/error-object-from-payload/blob/main/playground/index.ts)
+  file
 
 ## Installation
 
-`npm install @smbcheeky/error-object @smbcheeky/error-object-from`
+`npm install @smbcheeky/error-object @smbcheeky/error-object-from-payload`
 
-`yarn add @smbcheeky/error-object @smbcheeky/error-object-from`
+`yarn add @smbcheeky/error-object @smbcheeky/error-object-from-payload`
 
 ## Description
 
@@ -25,16 +26,16 @@ The ErrorObject class is made to extend `Error` enabling checks like `errorObjec
 `errorObject instanceof ErrorObject`. The `ErrorObject` class is backwards compatible with `Error`.
 
 This functionality was extracted from the [error-object](https://github.com/SMBCheeky/error-object) package (at v1.1.5)
-and renamed to `error-object-from` to simplify the main package and its README. This package is not a
+and renamed to `error-object-from-payload` to simplify the main package and its README. This package is not a
 replacement for the `error-object` package, it is just a helper to simplify the process of creating errors from any
 payload by providing step-by-step debugging logs for the entire process.
 
 ## Usage
 
-Use `from(<anything>)` to create errors from any input:
+Use `fromPayload(<anything>)` to create errors from any input:
 
 - you can pass an object or a caught error to it, and it will try its best to create an error from it
-- `from(<anything>)` returns an object with two properties: `.error` and `.force`
+- `fromPayload(<anything>)` returns an object with two properties: `.error` and `.force`
 - `.error` represents the error, if it can be created, otherwise it is `undefined`
 - `.force` represents the error, if it can be created, otherwise it is going to return a `ErrorObject.fallback()`
   error
@@ -46,7 +47,7 @@ The processing of the ErrorObject is done in a few steps, based on the `ErrorObj
 - then the objects checks for an object array at `pathToErrors`, which could be an array of errors
 - if an error array is found, the process will consider all other paths relative to the objects in the error array found
 - if an error array is not found, the process will consider all other paths absolute to the initial objectpassed to
-  `from()`
+  `fromPayload()`
 - the `pathToCode`, `pathToNumberCode`, `pathToMessage`, `pathToDetails` and `pathToDomain` options are used to map
   values to their associated field, if found
 - for all fields other than `numberCode`, if a value is found and is a string, it is saved as is, but if it is an array
@@ -63,7 +64,7 @@ The processing of the ErrorObject is done in a few steps, based on the `ErrorObj
 - in the last step of the process, the list is filtered down and a single error object is created, with everything baked
   in
 - think detailed `processingErrors` which includes the summaries and the errors that were triggered during the process,
-  the `raw` object that was used as in input for the from() call and the `nextErrors` array which allows for
+  the `raw` object that was used as in input for the fromPayload() call and the `nextErrors` array which allows for
   all errors to be saved on one single error object for later use
 
 ## Usage & Examples
@@ -74,7 +75,7 @@ the [playground](https://github.com/SMBCheeky/error-object/blob/main/playground/
 ```typescript
 new ErrorObject({ code: '', message: 'Something went wrong.', domain: 'auth' }).debugLog('LOG');
 
-from({ code: '', message: 'Something went wrong', domain: 'auth' })?.force?.debugLog('LOG');
+fromPayload({ code: '', message: 'Something went wrong', domain: 'auth' })?.force?.debugLog('LOG');
 
 // Example 12 output:
 // 
@@ -102,7 +103,7 @@ const response = {
   body: '{"error":"Invalid input data","code":400}',
 };
 
-from(JSON.parse(response?.body), {
+fromPayload(JSON.parse(response?.body), {
   pathToNumberCode: ['code'],
   pathToMessage: ['error'],
 }).force?.debugLog('LOG');
@@ -145,7 +146,7 @@ const AuthMessageResolver = (
 };
 
 const createAuthError2 = (code: string) => {
-  return from({ code, domain: 'auth', }, { transform: AuthMessageResolver, });
+  return fromPayload({ code, domain: 'auth', }, { transform: AuthMessageResolver, });
 };
 
 

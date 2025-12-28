@@ -26,7 +26,7 @@ export const addPrefixPathVariants = (
 };
 
 /**
- * The {@link DEFAULT_BUILD_OPTIONS} is a set of default options that can be used to customize the behavior of the {@link ErrorObject.from()} method.
+ * The {@link DEFAULT_BUILD_OPTIONS} is a set of default options that can be used to customize the behavior of the {@link fromPayload()} method.
  * It contains common paths and a transform function that automatically converts the error number code, if it exists, to a string and sets it as the error code.
  */
 export const DEFAULT_BUILD_OPTIONS: ErrorObjectBuildOptions = {
@@ -91,7 +91,7 @@ export type ErrorObjectTransformState = {
 };
 
 /**
- * The {@link ErrorObjectBuildOptions} type contains all the options that can be used to customize the behavior of the {@link ErrorObject.from()} method.
+ * The {@link ErrorObjectBuildOptions} type contains all the options that can be used to customize the behavior of the {@link fromPayload()} method.
  * Options are self-explanatory and the code behind them is kept similar and very straightforward, by design.
  */
 export type ErrorObjectBuildOptions = {
@@ -194,7 +194,7 @@ export type ErrorSummary = {
 };
 
 /**
- * The {@link ErrorObjectErrorResult} type contains all the possible error results that can be returned by the {@link ErrorObject.from()} method.
+ * The {@link ErrorObjectErrorResult} type contains all the possible error results that can be returned by the {@link fromPayload()} method.
  * The error results are used to identify the type of error that occurred during the process of building the error object.
  */
 export type ErrorObjectErrorResult =

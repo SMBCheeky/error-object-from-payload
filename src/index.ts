@@ -195,11 +195,11 @@ const processErrorObjectResult = (
 
 
 /**
- * The {@link ErrorObject.from()} method is an alternative way to create an {@link ErrorObject} from anything resembling an error.
+ * The {@link fromPayload()} method is an alternative way to create an {@link ErrorObject} from anything resembling an error.
  * It contains options for customizing how the input is processed and how the error is built.
  * Check out the {@link ErrorObjectBuildOptions} type for more details.
  */
-const from = (
+export const fromPayload = (
   value: any,
   withOptions?: Partial<ErrorObjectBuildOptions>,
 ): {
@@ -229,5 +229,3 @@ const from = (
   }
   return processErrorObjectResult(summaries, value, fallbackError);
 };
-
-export default from;

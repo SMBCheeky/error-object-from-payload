@@ -1,5 +1,5 @@
 {
-  "name": "@smbcheeky/error-object-from",
+  "name": "@smbcheeky/error-object-from-payload",
   "description": "Create ErrorObjects from any payload with simple rules and benefit from step-to-step debugging logs for the entire process.",
   "version": "1.1.5",
   "main": "dist/index.js",
@@ -28,10 +28,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SMBCheeky/error-object-from.git"
+    "url": "git+https://github.com/SMBCheeky/error-object-from-payload.git"
   },
   "bugs": {
-    "url": "https://github.com/SMBCheeky/error-object-from/issues"
+    "url": "https://github.com/SMBCheeky/error-object-from-payload/issues"
   },
   "keywords": [
     "exceptions",
