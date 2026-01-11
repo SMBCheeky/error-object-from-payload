@@ -6,17 +6,17 @@ export const __processAllValuesFromPaths = (
   options: ErrorObjectBuildOptions,
 ):
   | {
-  codeBeforeTransform: string | undefined;
-  codePath: string | undefined;
-  numberCodeBeforeTransform: number | undefined;
-  numberCodePath: string | undefined;
-  messageBeforeTransform: string | undefined;
-  messagePath: string | undefined;
-  detailsBeforeTransform: string | undefined;
-  detailsPath: string | undefined;
-  domainBeforeTransform: string | undefined;
-  domainPath: string | undefined;
-}
+      codeBeforeTransform: string | undefined;
+      codePath: string | undefined;
+      numberCodeBeforeTransform: number | undefined;
+      numberCodePath: string | undefined;
+      messageBeforeTransform: string | undefined;
+      messagePath: string | undefined;
+      detailsBeforeTransform: string | undefined;
+      detailsPath: string | undefined;
+      domainBeforeTransform: string | undefined;
+      domainPath: string | undefined;
+    }
   | ErrorObjectErrorResult => {
   let codeBeforeTransform: string | undefined;
   let codePath: string | undefined;
@@ -37,7 +37,7 @@ export const __processAllValuesFromPaths = (
         codeBeforeTransform = found;
         break;
       }
-      if ((Array.isArray(found) || typeof found === 'object')) {
+      if (Array.isArray(found) || typeof found === 'object') {
         codePath = path;
         codeBeforeTransform = JSON.stringify(found);
         break;
@@ -84,7 +84,7 @@ export const __processAllValuesFromPaths = (
         messageBeforeTransform = found;
         break;
       }
-      if ((Array.isArray(found) || typeof found === 'object')) {
+      if (Array.isArray(found) || typeof found === 'object') {
         messagePath = path;
         messageBeforeTransform = JSON.stringify(found);
         break;
@@ -111,7 +111,7 @@ export const __processAllValuesFromPaths = (
         detailsBeforeTransform = found;
         break;
       }
-      if ((Array.isArray(found) || typeof found === 'object')) {
+      if (Array.isArray(found) || typeof found === 'object') {
         detailsPath = path;
         detailsBeforeTransform = JSON.stringify(found);
         break;
@@ -138,7 +138,7 @@ export const __processAllValuesFromPaths = (
         domainBeforeTransform = found;
         break;
       }
-      if ((Array.isArray(found) || typeof found === 'object')) {
+      if (Array.isArray(found) || typeof found === 'object') {
         domainPath = path;
         domainBeforeTransform = JSON.stringify(found);
         break;

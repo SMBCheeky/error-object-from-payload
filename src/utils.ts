@@ -1,20 +1,11 @@
 /**
  * For customizing the paths, please make sure to use the {@link addPrefixPathVariants} function to also add the `error.` prefixed paths to the pathTo... arrays used in the {@link ErrorObjectBuildOptions} type.
  */
-export const addPrefixPathVariants = (
-  prefix: string | string[],
-  array: string[],
-): string[] => {
+export const addPrefixPathVariants = (prefix: string | string[], array: string[]): string[] => {
   if (typeof prefix === 'string') {
-    return array.concat(
-      array.map((s) => (typeof s === 'string' ? `${prefix}.${s}` : s)),
-    );
+    return array.concat(array.map((s) => (typeof s === 'string' ? `${prefix}.${s}` : s)));
   }
-  if (
-    Array.isArray(prefix) &&
-    prefix.length > 0 &&
-    typeof prefix?.[0] === 'string'
-  ) {
+  if (Array.isArray(prefix) && prefix.length > 0 && typeof prefix?.[0] === 'string') {
     const result = [...array];
     for (const p of prefix) {
       const temp = array.map((s) => (typeof s === 'string' ? `${p}.${s}` : s));
@@ -31,40 +22,17 @@ export const addPrefixPathVariants = (
  */
 export const DEFAULT_BUILD_OPTIONS: ErrorObjectBuildOptions = {
   pathToErrors: ['errors', 'errs'],
-  pathToCode: addPrefixPathVariants('error', [
-    'code',
-    'err_code',
-    'errorCode',
-    'error_code',
-  ]),
+  pathToCode: addPrefixPathVariants('error', ['code', 'err_code', 'errorCode', 'error_code']),
   pathToNumberCode: addPrefixPathVariants('error', [
     'numberCode',
     'err_number_code',
     'errorNumberCode',
     'error_number_code',
   ]),
-  pathToMessage: addPrefixPathVariants('error', [
-    'message',
-    'err_message',
-    'errorMessage',
-    'error_message',
-  ]),
-  pathToDetails: addPrefixPathVariants('error', [
-    'details',
-    'err_details',
-    'errorDetails',
-    'error_details',
-  ]),
-  pathToDomain: addPrefixPathVariants('error', [
-    'domain',
-    'errorDomain',
-    'error_domain',
-    'err_domain',
-    'type',
-  ]),
-  transform: (
-    beforeTransform: ErrorObjectTransformState,
-  ): ErrorObjectTransformState => {
+  pathToMessage: addPrefixPathVariants('error', ['message', 'err_message', 'errorMessage', 'error_message']),
+  pathToDetails: addPrefixPathVariants('error', ['details', 'err_details', 'errorDetails', 'error_details']),
+  pathToDomain: addPrefixPathVariants('error', ['domain', 'errorDomain', 'error_domain', 'err_domain', 'type']),
+  transform: (beforeTransform: ErrorObjectTransformState): ErrorObjectTransformState => {
     let newCode = beforeTransform.code;
     if (beforeTransform.code === undefined || beforeTransform.code === null) {
       const value = beforeTransform.numberCode;
@@ -164,10 +132,7 @@ export type ErrorObjectBuildOptions = {
    * This is useful for transforming a the message based on the error code, the domain based on the error code, etc. allowing
    * the developer to customize the final error object created.
    */
-  transform?: (
-    beforeTransform: ErrorObjectTransformState,
-    inputObject: any,
-  ) => ErrorObjectTransformState;
+  transform?: (beforeTransform: ErrorObjectTransformState, inputObject: any) => ErrorObjectTransformState;
 };
 
 type PathValueAndTransform<V> = {
