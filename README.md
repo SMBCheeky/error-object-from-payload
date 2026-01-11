@@ -70,7 +70,7 @@ the [playground](https://github.com/SMBCheeky/error-object/blob/main/playground/
 ```typescript
 new ErrorObject({ code: '', message: 'Something went wrong.', domain: 'auth' }).debugLog('LOG');
 
-new ErrorObjectFromPayload({ code: '', message: 'Something went wrong', domain: 'auth' })?.force?.debugLog('LOG');
+new ErrorObjectFromPayload({ code: '', message: 'Something went wrong', domain: 'auth' }).debugLog('LOG');
 
 // Example 12 output:
 //
@@ -101,7 +101,7 @@ const response = {
 new ErrorObjectFromPayload(JSON.parse(response?.body), {
   pathToNumberCode: ['code'],
   pathToMessage: ['error'],
-}).force?.debugLog('LOG');
+}).debugLog('LOG');
 
 // Example 6 output:
 //
@@ -143,10 +143,10 @@ const createAuthError2 = (code: string) => {
   return new ErrorObjectFromPayload({ code, domain: 'auth' }, { transform: AuthMessageResolver });
 };
 
-createAuthError2('generic')?.error?.log('1');
-createAuthError2('generic-again')?.error?.log('2');
-createAuthError2('generic-network')?.error?.log('3');
-createAuthError2('invalid-code')?.error?.log('4');
+createAuthError2('generic').log('1');
+createAuthError2('generic-again').log('2');
+createAuthError2('generic-network').log('3');
+createAuthError2('invalid-code').log('4');
 
 // Example 2 output:
 //
