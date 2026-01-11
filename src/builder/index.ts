@@ -50,24 +50,14 @@ export const buildSummariesFromObject = (
 
     let summaries: (ErrorSummary | ErrorObjectErrorResult)[] = [];
     for (const errorMaybeObject of errors) {
-      const summary = buildSummaryFromObject(
-        errorMaybeObject,
-        errorsPath,
-        didDetectErrorsArray,
-        options,
-      );
+      const summary = buildSummaryFromObject(errorMaybeObject, errorsPath, didDetectErrorsArray, options);
       summaries.push(summary);
     }
 
     return summaries;
-  }
-  catch (generalError) {
+  } catch (generalError) {
     ErrorObject.SHOW_ERROR_LOGS &&
-    console.log(
-      '[ErrorObject]',
-      'Error during buildSummariesFromObject():',
-      generalError,
-    );
+      console.log('[ErrorObject]', 'Error during buildSummariesFromObject():', generalError);
     return ['generalBuildSummariesFromObjectError'];
   }
 };
@@ -93,8 +83,7 @@ export const buildSummaryFromObject = (
         if (json !== undefined && json !== null && typeof json === 'object') {
           objectToParse = json;
         }
-      }
-      catch {
+      } catch {
         // At least we tried :)
       }
       if (objectToParse === maybeObject) {
@@ -146,11 +135,7 @@ export const buildSummaryFromObject = (
       return 'transformCodeResultIsNotString';
     }
 
-    if (
-      values.numberCode !== undefined &&
-      values.numberCode !== null &&
-      typeof values.numberCode !== 'number'
-    ) {
+    if (values.numberCode !== undefined && values.numberCode !== null && typeof values.numberCode !== 'number') {
       return 'transformNumberCodeResultIsNotNumber';
     }
     if (values.numberCode !== undefined && values.numberCode !== null && isNaN(values.numberCode)) {
@@ -173,57 +158,50 @@ export const buildSummaryFromObject = (
       value: {
         code:
           codePath || codeBeforeTransform || values.code
-          ? {
-              path: codePath,
-              beforeTransform: codeBeforeTransform,
-              value: values.code,
-            }
-          : undefined,
+            ? {
+                path: codePath,
+                beforeTransform: codeBeforeTransform,
+                value: values.code,
+              }
+            : undefined,
         numberCode:
           numberCodePath ||
-          (numberCodeBeforeTransform !== undefined &&
-           numberCodeBeforeTransform !== null) ||
+          (numberCodeBeforeTransform !== undefined && numberCodeBeforeTransform !== null) ||
           (values.numberCode !== undefined && values.numberCode !== null)
-          ? {
-              path: numberCodePath,
-              beforeTransform: numberCodeBeforeTransform,
-              value: values.numberCode,
-            }
-          : undefined,
+            ? {
+                path: numberCodePath,
+                beforeTransform: numberCodeBeforeTransform,
+                value: values.numberCode,
+              }
+            : undefined,
         message:
           messagePath || messageBeforeTransform || values.message
-          ? {
-              path: messagePath,
-              beforeTransform: messageBeforeTransform,
-              value: values.message,
-            }
-          : undefined,
+            ? {
+                path: messagePath,
+                beforeTransform: messageBeforeTransform,
+                value: values.message,
+              }
+            : undefined,
         details:
           detailsPath || detailsBeforeTransform || values.details
-          ? {
-              path: detailsPath,
-              beforeTransform: detailsBeforeTransform,
-              value: values.details,
-            }
-          : undefined,
+            ? {
+                path: detailsPath,
+                beforeTransform: detailsBeforeTransform,
+                value: values.details,
+              }
+            : undefined,
         domain:
           domainPath || domainBeforeTransform || values.domain
-          ? {
-              path: domainPath,
-              beforeTransform: domainBeforeTransform,
-              value: values.domain,
-            }
-          : undefined,
+            ? {
+                path: domainPath,
+                beforeTransform: domainBeforeTransform,
+                value: values.domain,
+              }
+            : undefined,
       },
     };
-  }
-  catch (generalError) {
-    ErrorObject.SHOW_ERROR_LOGS &&
-    console.log(
-      '[ErrorObject]',
-      'Error during buildSummaryFromObject():',
-      generalError,
-    );
+  } catch (generalError) {
+    ErrorObject.SHOW_ERROR_LOGS && console.log('[ErrorObject]', 'Error during buildSummaryFromObject():', generalError);
     return 'generalBuildSummaryFromObjectError';
   }
 };
@@ -234,13 +212,13 @@ export const findNestedValueForPath = (value: any, path: string): any => {
   }
   const normalizedPath = path?.replace('[', '')?.replace(']', '');
   return !normalizedPath
-         ? undefined
-         : normalizedPath.split('.').reduce((acc, key) => {
-      if (key.length === 0) {
-        return acc;
-      }
-      const numericKey = Number(key);
-      const resolvedKey = isNaN(numericKey) ? key : numericKey;
-      return acc && typeof acc === 'object' ? acc[resolvedKey] : undefined;
-    }, value);
+    ? undefined
+    : normalizedPath.split('.').reduce((acc, key) => {
+        if (key.length === 0) {
+          return acc;
+        }
+        const numericKey = Number(key);
+        const resolvedKey = isNaN(numericKey) ? key : numericKey;
+        return acc && typeof acc === 'object' ? acc[resolvedKey] : undefined;
+      }, value);
 };

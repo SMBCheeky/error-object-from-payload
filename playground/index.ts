@@ -1,13 +1,13 @@
 import { ErrorObject } from '@smbcheeky/error-object';
-import { addPrefixPathVariants, ErrorObjectTransformState, fromPayload } from '@smbcheeky/error-object-from-payload';
+import { addPrefixPathVariants, ErrorObjectTransformState, ErrorObjectFromPayload } from '@smbcheeky/error-object-from-payload';
 
 /*
  *
  * If you reached this file, you probably didn't read the README.md file.
  * Just take 30 seconds and at least read this part.
  *
- * - use both `new ErrorObject() and `fromPayload()` in your codebase, as they are both useful.
- * - wrap everything with and `fromPayload()` call, and don't forget to use both `error` and `force` properties.
+ * - use both `new ErrorObject() and `new ErrorObjectFromPayload()` in your codebase, as they are both useful.
+ * - wrap everything with and `new ErrorObjectFromPayload()` call, and don't forget to use both `error` and `force` properties.
  * - use `.log(<TAG>)` and `.debugLog(<TAG>)` to log the error object inline and make it traceable with a unique tag.
  * - use checks like .isGeneric() and .isFallback() to check if the error object is a generic or fallback error.
  *
@@ -19,9 +19,7 @@ import { addPrefixPathVariants, ErrorObjectTransformState, fromPayload } from '@
  */
 
 const runStoryExample = () => {
-  console.log(
-    '\n-Story Example------------------------------------------------------------------------------\n',
-  );
+  console.log('\n-Story Example------------------------------------------------------------------------------\n');
 
   // {
   //     'errors': [
@@ -42,11 +40,11 @@ const runStoryExample = () => {
   //   }
   //
   // Here are a couple of easy steps to map out a new error object:
-  // 1. Before you start, check the result of `fromPayload(object)?.error?.log('LOG')` and see
+  // 1. Before you start, check the result of `new ErrorObjectFromPayload(object).log('LOG')` and see
   //    what it returns. This will help you understand if you need to make any adjustments.
   //      - It seems there is no log "[LOG]" in the console, so we continue with the next step.
   //
-  // 2. Continue with `fromPayload(object)?.force?.verboseLog('LOG')` and see what it returns.
+  // 2. Continue with `new ErrorObjectFromPayload(object).verboseLog('LOG')` and see what it returns.
   //  "processingErrors": [
   //     {
   //       "errorCode": "unknownCodeOrMessage",
@@ -77,8 +75,8 @@ const runStoryExample = () => {
   //   ],
   //
   // 3. Observe the processingErrors object, returned by .debugLog(). You can see that the error object
-  //    was able to find the error message, but couldn't find the code. But something seems weird.
-  //    I can see `didDetectErrorsArray` is true and a `errorCode`
+  //    was able to find the error message but couldn't find the code. But something seems weird.
+  //    I can see `didDetectErrorsArray` is true and an ` errorCode `
   //    of type `ErrorObjectErrorResult`. The error code is a string that describes the error that
   //    occurred during processing. In this case, it's `unknownCodeOrMessage`.
   //      - Looking at the object, we can see that our error is
@@ -147,7 +145,7 @@ const runStoryExample = () => {
   // 12. Stand-up and marvel at the code that should've taken 5 minutes at most to complete and instead took 2 days :/
   //     - I'm pretty sure next time we'll both do better ;)
 
-  fromPayload(
+  new ErrorObjectFromPayload(
     {
       error: true, // added after speaking to the backend developer
       errors: [
@@ -180,12 +178,12 @@ const runStoryExample = () => {
       data: null,
     },
     {
-      pathToCode: ['extensions.code'], // changed to relative path to the error object in the array of errors
-      pathToMessage: ['message'], // changed to relative path to the error object in the array of errors
-      pathToDetails: ['locations'], // mapping locations to error object details, so that we can reference it later
+      pathToCode: ['extensions.code'], // changed to a relative path to the error object in the array of errors
+      pathToMessage: ['message'], // changed to a relative path to the error object in the array of errors
+      pathToDetails: ['locations'], // mapping locations to error object details so that we can reference it later
       checkInputObjectForValues: { error: { value: true, exists: true } }, // updated from { data: { value: null, exists: true } }
     },
-  )?.force?.debugLog('LOG'); // switched from verboseLog to log, after we finished debugging
+  ).debugLog('LOG'); // switched from verboseLog to log after we finished debugging
 
   // Story Example output:
   // [LOG][1] Cannot query field "username" on type "User" [GRAPHQL_VALIDATION_FAILED]
@@ -203,32 +201,38 @@ const runStoryExample = () => {
 };
 
 const runSanityChecks = () => {
-  console.log(
-    '-Sanity checks------------------------------------------------------------------------------\n',
-  );
+  console.log('-Sanity checks------------------------------------------------------------------------------\n');
+
+  const errorObjectFromPayload = ErrorObjectFromPayload.generic();
+  console.log(errorObjectFromPayload instanceof ErrorObjectFromPayload, 'errorObjectFromPayload instanceof ErrorObjectFromPayload');
+  console.log(errorObjectFromPayload instanceof ErrorObject, 'errorObjectFromPayload instanceof ErrorObject');
+  console.log(errorObjectFromPayload instanceof Error, 'errorObjectFromPayload instanceof Error');
+
+  const errorObject = ErrorObject.generic();
+  console.log(errorObject instanceof ErrorObjectFromPayload, 'errorObject instanceof ErrorObjectFromPayload');
+  console.log(errorObject instanceof ErrorObject, 'errorObject instanceof ErrorObject');
+  console.log(errorObject instanceof Error, 'errorObject instanceof Error');
 
   const error = new Error('regular error');
-  const errorObject = ErrorObject.generic();
-  console.log(
-    errorObject instanceof ErrorObject,
-    'errorObject instanceof ErrorObject',
-  );
-  console.log(errorObject instanceof Error, 'errorObject instanceof Error');
+  console.log(error instanceof ErrorObjectFromPayload, 'error instanceof ErrorObjectFromPayload');
   console.log(error instanceof ErrorObject, 'error instanceof ErrorObject');
   console.log(error instanceof Error, 'error instanceof Error');
 
   // Sanity check output:
   //
+  // true errorObjectFromPayload instanceof ErrorObjectFromPayload
+  // true errorObjectFromPayload instanceof ErrorObject
+  // true errorObjectFromPayload instanceof Error
+  // false errorObject instanceof ErrorObjectFromPayload
   // true errorObject instanceof ErrorObject
   // true errorObject instanceof Error
+  // false error instanceof ErrorObjectFromPayload
   // false error instanceof ErrorObject
   // true error instanceof Error
 };
 
 const runExample1 = () => {
-  console.log(
-    '\n-Example 1------------------------------------------------------------------------------\n',
-  );
+  console.log('\n-Example 1------------------------------------------------------------------------------\n');
 
   // I encourage you to map out the error codes and messaged from your 3rd party dependencies or APIs.
   // This allows you to, at any moment in time, output a more human-readable error message.
@@ -237,28 +241,26 @@ const runExample1 = () => {
   // Notice the error codes are unique and maybe more importantly, they are human-readable
   // and easy to understand by non-technical people, your end-users.
   const ErrorObjectMessage1 = {
-    generic: 'Something went wrong',
+    'generic': 'Something went wrong',
     'generic-again': 'Something went wrong. Please try again.',
-    'generic-network':
-      'Something went wrong. Please check your internet connection and try again.',
+    'generic-network': 'Something went wrong. Please check your internet connection and try again.',
   } as const;
 
   type ErrorObjectCode1 = keyof typeof ErrorObjectMessage1;
 
-  fromPayload(
+  new ErrorObjectFromPayload(
     { code: 'generic-again' },
     {
-      transform: (beforeTransform: ErrorObjectTransformState) =>
-        ({
-          ...beforeTransform, message: beforeTransform.code
-                                       ? ErrorObjectMessage1?.[beforeTransform.code as ErrorObjectCode1] ??
-                                         'Something went wrong.'
-                                       : 'Invalid error found.',
-        }),
+      transform: (beforeTransform: ErrorObjectTransformState) => ({
+        ...beforeTransform,
+        message: beforeTransform.code
+          ? (ErrorObjectMessage1?.[beforeTransform.code as ErrorObjectCode1] ?? 'Something went wrong.')
+          : 'Invalid error found.',
+      }),
     },
   )
-  ?.error?.setDomain?.('update')
-  .verboseLog('1');
+    .setDomain?.('update')
+    .verboseLog('1');
 
   // Example 1 output:
   //
@@ -292,9 +294,7 @@ const runExample1 = () => {
 };
 
 const runExample2 = () => {
-  console.log(
-    '\n-Example 2------------------------------------------------------------------------------\n',
-  );
+  console.log('\n-Example 2------------------------------------------------------------------------------\n');
 
   // As opposed to the previous example, this one uses a simple switch statement to resolve the
   // error message from the code.
@@ -302,9 +302,7 @@ const runExample2 = () => {
   // for all levels of developers.
   // You could have a file called `errors.ts` in each of your modules/folders and define a function
   // like `createAuthError2()` that returns an error object with the correct message and domain.
-  const AuthMessageResolver = (
-    beforeTransform: ErrorObjectTransformState,
-  ): ErrorObjectTransformState => {
+  const AuthMessageResolver = (beforeTransform: ErrorObjectTransformState): ErrorObjectTransformState => {
     // Quick tip: Make all messages slightly different to make it easier to find the right one when debugging
     let message: string | undefined;
     switch (beforeTransform.code) {
@@ -324,7 +322,7 @@ const runExample2 = () => {
   };
 
   const createAuthError2 = (code: string) => {
-    return fromPayload(
+    return new ErrorObjectFromPayload(
       {
         code,
         domain: 'auth',
@@ -335,10 +333,10 @@ const runExample2 = () => {
     );
   };
 
-  createAuthError2('generic')?.error?.log('1');
-  createAuthError2('generic-again')?.error?.log('2');
-  createAuthError2('generic-network')?.error?.log('3');
-  createAuthError2('invalid-code')?.error?.log('4');
+  createAuthError2('generic').log('1');
+  createAuthError2('generic-again').log('2');
+  createAuthError2('generic-network').log('3');
+  createAuthError2('invalid-code').log('4');
 
   // Example 2 output:
   //
@@ -349,24 +347,18 @@ const runExample2 = () => {
 };
 
 const runExample3 = () => {
-  console.log(
-    '\n-Example 3------------------------------------------------------------------------------\n',
-  );
+  console.log('\n-Example 3------------------------------------------------------------------------------\n');
 
   const rawPaths = ['context.reason'];
   const pathToCode = addPrefixPathVariants('error', ['context.reason']);
-  console.log(
-    'The method addPrefixPathVariants helps generate possible paths from',
-    rawPaths,
-  );
+  console.log('The method addPrefixPathVariants helps generate possible paths from', rawPaths);
   console.log('into the final list of paths', pathToCode, '\n');
 
-  fromPayload(
+  new ErrorObjectFromPayload(
     {
       code: 'declined',
       error: {
-        message:
-          'Please make sure your battery charge is above 75% before proceeding.',
+        message: 'Please make sure your battery charge is above 75% before proceeding.',
         context: {
           reason: 'battery-low',
         },
@@ -376,8 +368,8 @@ const runExample3 = () => {
       pathToCode,
     },
   )
-  ?.error?.setDomain('update-software')
-  .verboseLog('');
+    .setDomain('update-software')
+    .verboseLog('');
 
   // Example 3 output:
   //
@@ -428,11 +420,9 @@ const runExample3 = () => {
 };
 
 const runExample4 = () => {
-  console.log(
-    '\n-Example 4------------------------------------------------------------------------------\n',
-  );
+  console.log('\n-Example 4------------------------------------------------------------------------------\n');
 
-  fromPayload(
+  new ErrorObjectFromPayload(
     {
       error: {
         message: 'battery-low',
@@ -455,8 +445,8 @@ const runExample4 = () => {
       pathToDomain: ['error.code'],
     },
   )
-  ?.error?.setDomain?.('update')
-  .debugLog('?');
+    .setDomain?.('update')
+    .debugLog('?');
 
   // Example 4 output:
   //
@@ -469,12 +459,10 @@ const runExample4 = () => {
 };
 
 const runExample5 = () => {
-  console.log(
-    '\n-Example 5------------------------------------------------------------------------------\n',
-  );
+  console.log('\n-Example 5------------------------------------------------------------------------------\n');
 
   // Recommended approach, very simple and to the point
-  fromPayload(
+  new ErrorObjectFromPayload(
     {
       status: 'error',
       message: 'Validation failed',
@@ -487,18 +475,13 @@ const runExample5 = () => {
     },
     {
       pathToCode: ['message'],
-      pathToMessage: [
-        'data.username',
-        'data.email',
-        'data.password',
-        'data.confirmPassword',
-      ],
+      pathToMessage: ['data.username', 'data.email', 'data.password', 'data.confirmPassword'],
       checkInputObjectForValues: { status: { value: 'error', exists: true } },
     },
-  )?.force?.debugLog('1');
+  ).debugLog('1');
 
   // Second approach, possible, but very involved
-  fromPayload(
+  new ErrorObjectFromPayload(
     {
       status: 'error',
       message: 'Validation failed',
@@ -518,14 +501,13 @@ const runExample5 = () => {
           const data = message && JSON.parse(message);
           const list =
             data && typeof data === 'object'
-            ? Object.values(data)
-            .map((t) => t?.toString())
-            .filter((t) => t)
-            : [];
+              ? Object.values(data)
+                  .map((t) => t?.toString())
+                  .filter((t) => t)
+              : [];
           message = list?.[0] ?? message;
-        }
-        catch (error) {
-          console.log(fromPayload(error)?.force?.debugLog('PARSE1'));
+        } catch (error) {
+          console.log(new ErrorObjectFromPayload(error).debugLog('PARSE1'));
         }
         // I choose to say something went wrong here instead of sending back an unknown value
         return {
@@ -535,10 +517,10 @@ const runExample5 = () => {
       },
       checkInputObjectForValues: { status: { value: 'error', exists: true } },
     },
-  )?.force?.debugLog('2');
+  ).debugLog('2');
 
   // or another way to write the above
-  fromPayload(
+  new ErrorObjectFromPayload(
     {
       status: 'error',
       message: 'Validation failed',
@@ -560,19 +542,18 @@ const runExample5 = () => {
       pathToMessage: ['data'],
     },
   )
-  .force?.setMessage((old: string) => {
-    try {
-      return Object.values(JSON.parse(old))?.[0]?.toString() ?? old;
-    }
-    catch (error) {
-      console.log(fromPayload(error)?.force?.debugLog('PARSE1'));
-    }
-    return old;
-  })
-  .debugLog('3'); // ?.force?.verboseLog('LOG');
+    .setMessage((old: string) => {
+      try {
+        return Object.values(JSON.parse(old))?.[0]?.toString() ?? old;
+      } catch (error) {
+        console.log(new ErrorObjectFromPayload(error).debugLog('PARSE1'));
+      }
+      return old;
+    })
+    .debugLog('3'); // .verboseLog('LOG');
 
   // I could probably make this easier on you, but this is where the end of the library lies.
-  // When dynamic fields are involved it is your job to decide how to handle them.
+  // When dynamic fields are involved, it is your job to decide how to handle them.
   // This library won't do black magic, by design, but it can hide a lot of things in plain sight :)
 
   // Story Example output:
@@ -594,9 +575,7 @@ const runExample5 = () => {
 };
 
 const runExample6 = () => {
-  console.log(
-    '\n-Example 6------------------------------------------------------------------------------\n',
-  );
+  console.log('\n-Example 6------------------------------------------------------------------------------\n');
 
   try {
     const response = {
@@ -607,26 +586,22 @@ const runExample6 = () => {
       body: '{"error":"Invalid input data","code":400}',
     };
 
-    // First approach is to feed only the body to the error object builder - simple, elegant, recommended
-    fromPayload(JSON.parse(response?.body), {
+    // The first approach is to feed only the body to the error object builder - simple, elegant, recommended
+    new ErrorObjectFromPayload(JSON.parse(response?.body), {
       pathToNumberCode: ['code'],
       pathToMessage: ['error'],
-    }).force?.debugLog('LOG');
+    }).debugLog('LOG');
 
-    // Second approach is to use a transform function to parse the body
-    // You can access both the input object, or you can use the fact that the library stringifies the value found at any path, if it's an object/array.
-    fromPayload(response, {
+    // The second approach is to use a transform function to parse the body
+    // You can access both the input object, or you can use the fact that
+    // the library stringifies the value found at any path, if it's an object/array.
+    new ErrorObjectFromPayload(response, {
       pathToMessage: ['body'],
       transform: (beforeTransform: ErrorObjectTransformState, inputObject: any): ErrorObjectTransformState => {
         let numberCode = beforeTransform.numberCode;
         let code = beforeTransform.code;
 
-        if (
-          numberCode === undefined ||
-          numberCode === null ||
-          typeof numberCode !== 'number' ||
-          isNaN(numberCode)
-        ) {
+        if (numberCode === undefined || numberCode === null || typeof numberCode !== 'number' || isNaN(numberCode)) {
           try {
             const possibleNumberCode = JSON.parse(inputObject?.body)?.code;
             if (
@@ -638,19 +613,14 @@ const runExample6 = () => {
               numberCode = possibleNumberCode;
               code = possibleNumberCode.toString();
             }
-          }
-          catch {
+          } catch {
             // We tried :)
           }
         }
         let message = beforeTransform.message;
         if (message) {
           const possibleMessage = JSON.parse(message)?.error;
-          if (
-            possibleMessage !== undefined &&
-            possibleMessage !== null &&
-            typeof possibleMessage === 'string'
-          ) {
+          if (possibleMessage !== undefined && possibleMessage !== null && typeof possibleMessage === 'string') {
             message = possibleMessage;
           }
         }
@@ -661,12 +631,10 @@ const runExample6 = () => {
           message,
         };
       },
-    }).force?.debugLog('LOG');
+    }).debugLog('LOG');
 
     // Now, which one do you prefer :) ?
-  }
-  catch (error) {
-
+  } catch (error) {
     new ErrorObject({
       code: 'invalid-data',
       message: 'Server response is invalid. Please try again.',
@@ -690,43 +658,43 @@ const runExample6 = () => {
 };
 
 const runExample7 = () => {
-  console.log(
-    '\n-Example 7------------------------------------------------------------------------------\n',
-  );
+  console.log('\n-Example 7------------------------------------------------------------------------------\n');
 
-  fromPayload(
-    {
-      'error': {
-        'code': 'auth/invalid-email',
-        'message': 'The email address is badly formatted.',
-        'errors': [],
-      },
-    })
-  .force?.debugLog('LOG');
+  new ErrorObjectFromPayload({
+    error: {
+      code: 'auth/invalid-email',
+      message: 'The email address is badly formatted.',
+      errors: [],
+    },
+  }).debugLog('LOG');
 
   // Now what if the errors looked like this?
   // How will you parse it? Simple... use `pathToErrors` - you will have access to all 3 errorObjects via .nextErrors property.
-  fromPayload(
+  new ErrorObjectFromPayload(
     {
-      'error': {
-        'code': 'auth/invalid-email',
-        'message': 'The email address is badly formatted.',
-        'errors': [{
-          'code': 'auth/invalid-email',
-          'message': 'The email address is badly formatted.',
-        }, {
-          'code': 'auth/invalid-phone number',
-          'message': 'The phone number is invalid.',
-        }, {
-          'code': 'unauthorized',
-          'message': 'Access unauthorized.',
-        },
+      error: {
+        code: 'auth/invalid-email',
+        message: 'The email address is badly formatted.',
+        errors: [
+          {
+            code: 'auth/invalid-email',
+            message: 'The email address is badly formatted.',
+          },
+          {
+            code: 'auth/invalid-phone number',
+            message: 'The phone number is invalid.',
+          },
+          {
+            code: 'unauthorized',
+            message: 'Access unauthorized.',
+          },
         ],
       },
-    }, {
+    },
+    {
       pathToErrors: ['error.errors'],
-    })
-  .force?.debugLog('LOG');
+    },
+  ).debugLog('LOG');
 
   // Example 7 output:
   //
@@ -753,31 +721,35 @@ const runExample7 = () => {
 };
 
 const runExample8 = () => {
-  console.log(
-    '\n-Example 8------------------------------------------------------------------------------\n',
-  );
+  console.log('\n-Example 8------------------------------------------------------------------------------\n');
 
-  fromPayload({
-    'title': 'Unauthorized',
-    'detail': 'Invalid or expired token.',
-    'type': 'https://api.twitter.com/2/problems/invalid-auth',
-  }, {
-    pathToCode: ['type'],
-    pathToDomain: [],
-    pathToDetails: ['type'],
-    transform: (beforeTransform: ErrorObjectTransformState, inputObject: any): ErrorObjectTransformState => {
-      const type = inputObject?.type && typeof inputObject?.type === 'string' ? inputObject?.type : undefined;
-      const parts = type?.split('/');
-
-      return {
-        ...beforeTransform,
-        code: parts?.[parts.length - 1] ?? beforeTransform.code,
-        message: inputObject?.title?.length > 0 && inputObject?.detail?.length > 0
-                 ? `${inputObject?.title} - ${inputObject?.detail}`
-                 : inputObject?.title?.length > 0 ? inputObject?.title : inputObject?.detail,
-      };
+  new ErrorObjectFromPayload(
+    {
+      title: 'Unauthorized',
+      detail: 'Invalid or expired token.',
+      type: 'https://api.twitter.com/2/problems/invalid-auth',
     },
-  }).force?.debugLog('LOG');
+    {
+      pathToCode: ['type'],
+      pathToDomain: [],
+      pathToDetails: ['type'],
+      transform: (beforeTransform: ErrorObjectTransformState, inputObject: any): ErrorObjectTransformState => {
+        const type = inputObject?.type && typeof inputObject?.type === 'string' ? inputObject?.type : undefined;
+        const parts = type?.split('/');
+
+        return {
+          ...beforeTransform,
+          code: parts?.[parts.length - 1] ?? beforeTransform.code,
+          message:
+            inputObject?.title?.length > 0 && inputObject?.detail?.length > 0
+              ? `${inputObject?.title} - ${inputObject?.detail}`
+              : inputObject?.title?.length > 0
+                ? inputObject?.title
+                : inputObject?.detail,
+        };
+      },
+    },
+  ).debugLog('LOG');
 
   // Example 8 output:
   //
@@ -790,39 +762,37 @@ const runExample8 = () => {
 };
 
 const runExample9 = () => {
-  console.log(
-    '\n-Example 9------------------------------------------------------------------------------\n',
-  );
+  console.log('\n-Example 9------------------------------------------------------------------------------\n');
 
-  fromPayload({
-    'message': 'The given data was invalid.',
-    'errors': {
-      'email': [
-        'The email field is required.',
-        'The email must be a valid email address.',
-      ],
-      'password': ['The password field is required.'],
+  new ErrorObjectFromPayload(
+    {
+      message: 'The given data was invalid.',
+      errors: {
+        email: ['The email field is required.', 'The email must be a valid email address.'],
+        password: ['The password field is required.'],
+      },
     },
-  }, {
-    transform: (beforeTransform: ErrorObjectTransformState) => ({ ...beforeTransform, code: 'invalid-data' }),
-    pathToMessage: ['errors.email.0', 'errors.password.0'],
-  })?.force?.debugLog('LOG');
+    {
+      transform: (beforeTransform: ErrorObjectTransformState) => ({ ...beforeTransform, code: 'invalid-data' }),
+      pathToMessage: ['errors.email.0', 'errors.password.0'],
+    },
+  ).debugLog('LOG');
 
   // or maybe
 
-  fromPayload({
-    'message': 'The given data was invalid.',
-    'errors': {
-      'email': [
-        'The email field is required.',
-        'The email must be a valid email address.',
-      ],
-      'password': ['The password field is required.'],
+  new ErrorObjectFromPayload(
+    {
+      message: 'The given data was invalid.',
+      errors: {
+        email: ['The email field is required.', 'The email must be a valid email address.'],
+        password: ['The password field is required.'],
+      },
     },
-  }, {
-    pathToDetails: ['errors'],
-    transform: (beforeTransform: ErrorObjectTransformState) => ({ ...beforeTransform, code: 'invalid-data' }),
-  })?.force?.debugLog('LOG');
+    {
+      pathToDetails: ['errors'],
+      transform: (beforeTransform: ErrorObjectTransformState) => ({ ...beforeTransform, code: 'invalid-data' }),
+    },
+  ).debugLog('LOG');
 
   // As I wrote before, the library does not do black magic. You can easily write a reducer to get all the values
   // in email and then merge it with the password values. And you don't need to open an Issue on GitHub to ask why
@@ -844,36 +814,40 @@ const runExample9 = () => {
 };
 
 const runExample10 = () => {
-  console.log(
-    '\n-Example 10------------------------------------------------------------------------------\n',
-  );
+  console.log('\n-Example 10------------------------------------------------------------------------------\n');
 
   // Fun fact: This example was 100% written by AI. This means that once you write 2-3 examples, it will be able to
   // write the next one without any help from you...
   // On a serious note: Please triple check the AI output...
-  fromPayload({
-    'kind': 'AdmissionReview',
-    'apiVersion': 'admission.k8s.io/v1',
-    'response': {
-      'uid': '12345',
-      'allowed': false,
-      'status': {
-        'code': 403,
-        'message': 'Admission webhook denied the request due to policy violation.',
+  new ErrorObjectFromPayload(
+    {
+      kind: 'AdmissionReview',
+      apiVersion: 'admission.k8s.io/v1',
+      response: {
+        uid: '12345',
+        allowed: false,
+        status: {
+          code: 403,
+          message: 'Admission webhook denied the request due to policy violation.',
+        },
       },
     },
-  }, {
-    pathToCode: ['response.status.code'],
-    pathToMessage: ['response.status.message'],
-    transform: (beforeTransform: ErrorObjectTransformState, inputObject: any): ErrorObjectTransformState => {
-      return {
-        ...beforeTransform,
-        code: inputObject?.kind?.length > 0 && inputObject?.apiVersion?.length > 0
+    {
+      pathToCode: ['response.status.code'],
+      pathToMessage: ['response.status.message'],
+      transform: (beforeTransform: ErrorObjectTransformState, inputObject: any): ErrorObjectTransformState => {
+        return {
+          ...beforeTransform,
+          code:
+            inputObject?.kind?.length > 0 && inputObject?.apiVersion?.length > 0
               ? `${inputObject?.kind}/${inputObject?.apiVersion}`
-              : inputObject?.kind?.length > 0 ? inputObject?.kind : inputObject?.apiVersion,
-      };
+              : inputObject?.kind?.length > 0
+                ? inputObject?.kind
+                : inputObject?.apiVersion,
+        };
+      },
     },
-  }).force?.debugLog('LOG');
+  ).debugLog('LOG');
 
   // Example 10 AI output:
   //
@@ -893,26 +867,27 @@ const runExample10 = () => {
 };
 
 const runExample11 = () => {
-  console.log(
-    '\n-Example 11------------------------------------------------------------------------------\n',
-  );
+  console.log('\n-Example 11------------------------------------------------------------------------------\n');
 
   // Even if the library detects an array of errors, if there are not more than 1 error, it will return as if it was a single error.
-  fromPayload({
-    'response': {
-      'data': {
-        'message': 'Not Found',
-        'errors': [
-          {
-            'message': 'User not found',
-            'code': 'USER_NOT_FOUND',
-          },
-        ],
+  new ErrorObjectFromPayload(
+    {
+      response: {
+        data: {
+          message: 'Not Found',
+          errors: [
+            {
+              message: 'User not found',
+              code: 'USER_NOT_FOUND',
+            },
+          ],
+        },
+        status: 404,
+        statusText: 'Not Found',
       },
-      'status': 404,
-      'statusText': 'Not Found',
     },
-  }, { pathToErrors: ['response.data.errors'] }).force?.debugLog('LOG');
+    { pathToErrors: ['response.data.errors'] },
+  ).debugLog('LOG');
 
   // Example 11 output:
   //
@@ -924,13 +899,11 @@ const runExample11 = () => {
 };
 
 const runExample12 = () => {
-  console.log(
-    '\n-Example 12------------------------------------------------------------------------------\n',
-  );
+  console.log('\n-Example 12------------------------------------------------------------------------------\n');
 
   new ErrorObject({ code: '', message: 'Something went wrong.', domain: 'auth' }).debugLog('LOG');
 
-  fromPayload({ code: '', message: 'Something went wrong', domain: 'auth' })?.force?.debugLog('LOG');
+  new ErrorObjectFromPayload({ code: '', message: 'Something went wrong', domain: 'auth' }).debugLog('LOG');
 
   // Example 12 output:
   //
@@ -949,6 +922,8 @@ const runExample12 = () => {
 };
 
 console.log('\n\n\n\n\n\n');
+
+// ErrorObject.LOG_METHOD = ()=>{};
 
 runStoryExample();
 runSanityChecks();
