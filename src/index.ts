@@ -42,7 +42,7 @@ export class ErrorObjectFromPayload extends ErrorObject {
       } catch (error) {
         super({
           code: 'INT-1',
-          message: `Error during checkInputForInitialObject(). Details: ${error?.toString?.() ?? ErrorObject.DEFAULT_GENERIC_MESSAGE}}`,
+          message: `Error during checkInputForInitialObject(). Details: ${error?.toString?.() ?? ErrorObject.GENERIC_MESSAGE}}`,
           tag: ErrorObjectFromPayload.DEFAULT_FALLBACK_TAG,
           raw: {
             error,
@@ -52,8 +52,8 @@ export class ErrorObjectFromPayload extends ErrorObject {
       }
       if (checksFailed !== undefined) {
         super({
-          code: ErrorObjectFromPayload.DEFAULT_GENERIC_CODE,
-          message: ErrorObjectFromPayload.DEFAULT_GENERIC_MESSAGE,
+          code: ErrorObject.GENERIC_CODE,
+          message: ErrorObject.GENERIC_MESSAGE,
           tag: ErrorObjectFromPayload.DEFAULT_FALLBACK_TAG,
           raw: {
             processingErrors: [{ errorCode: checksFailed, summary: undefined }],
@@ -78,8 +78,11 @@ export class ErrorObjectFromPayload extends ErrorObject {
                 summary: summaries,
                 value: props,
               },
-            })
-            const nextErrors = rawNextErrors && rawNextErrors?.length > 0 ? rawNextErrors.map((p) => new ErrorObjectFromPayload(p)): undefined;
+            });
+            const nextErrors =
+              rawNextErrors && rawNextErrors?.length > 0
+                ? rawNextErrors.map((p) => new ErrorObjectFromPayload(p))
+                : undefined;
             if (nextErrors !== undefined) {
               this.nextErrors = nextErrors;
             }
@@ -88,8 +91,8 @@ export class ErrorObjectFromPayload extends ErrorObject {
         }
 
         super({
-          code: ErrorObjectFromPayload.DEFAULT_GENERIC_CODE,
-          message: ErrorObjectFromPayload.DEFAULT_GENERIC_MESSAGE,
+          code: ErrorObject.GENERIC_CODE,
+          message: ErrorObject.GENERIC_MESSAGE,
           tag: ErrorObjectFromPayload.DEFAULT_FALLBACK_TAG,
           raw: {
             processingErrors: processingErrors.length > 0 ? processingErrors : undefined,
@@ -99,7 +102,7 @@ export class ErrorObjectFromPayload extends ErrorObject {
       } catch (error) {
         super({
           code: 'INT-2',
-          message: `Error during processErrorObjectResult(). Details: ${error?.toString?.() ?? ErrorObject.DEFAULT_GENERIC_MESSAGE}}`,
+          message: `Error during processErrorObjectResult(). Details: ${error?.toString?.() ?? ErrorObject.GENERIC_MESSAGE}}`,
           tag: ErrorObjectFromPayload.DEFAULT_FALLBACK_TAG,
           raw: {
             error,
@@ -112,9 +115,9 @@ export class ErrorObjectFromPayload extends ErrorObject {
   // Overrides
   static generic = () =>
     new ErrorObjectFromPayload({
-      code: ErrorObject.DEFAULT_GENERIC_CODE,
-      message: ErrorObject.DEFAULT_GENERIC_MESSAGE,
-      tag: ErrorObject.DEFAULT_GENERIC_TAG,
+      code: ErrorObject.GENERIC_CODE,
+      message: ErrorObject.GENERIC_MESSAGE,
+      tag: ErrorObject.GENERIC_TAG,
     });
 
   protected _log(logTag: string, logLevel: 'log' | 'debug' | 'verbose') {
@@ -122,20 +125,26 @@ export class ErrorObjectFromPayload extends ErrorObject {
       logLevel === 'verbose' ? this.toVerboseString() : logLevel === 'debug' ? this.toDebugString() : this.toString();
     if (Array.isArray(this.nextErrors) && this.nextErrors.length > 0) {
       let row = 1;
-      console.log(`[${logTag}][${row}]`, logForThis);
+      ErrorObject.LOG_METHOD &&
+        typeof ErrorObject.LOG_METHOD === 'function' &&
+        ErrorObject.LOG_METHOD(`[${logTag}][${row}]`, logForThis);
       for (const error of this.nextErrors) {
         row++;
-        console.log(
-          `[${logTag}][${row}]`,
-          logLevel === 'verbose'
-            ? error.toVerboseString()
-            : logLevel === 'debug'
-              ? error.toDebugString()
-              : error.toString(),
-        );
+        ErrorObject.LOG_METHOD &&
+          typeof ErrorObject.LOG_METHOD === 'function' &&
+          ErrorObject.LOG_METHOD(
+            `[${logTag}][${row}]`,
+            logLevel === 'verbose'
+              ? error.toVerboseString()
+              : logLevel === 'debug'
+                ? error.toDebugString()
+                : error.toString(),
+          );
       }
     } else {
-      console.log(`[${logTag}]`, logForThis);
+      ErrorObject.LOG_METHOD &&
+        typeof ErrorObject.LOG_METHOD === 'function' &&
+        ErrorObject.LOG_METHOD(`[${logTag}]`, logForThis);
     }
     return this;
   }

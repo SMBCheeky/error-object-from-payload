@@ -923,6 +923,8 @@ const runExample12 = () => {
 
 console.log('\n\n\n\n\n\n');
 
+// ErrorObject.LOG_METHOD = ()=>{};
+
 runStoryExample();
 runSanityChecks();
 runExample1();
