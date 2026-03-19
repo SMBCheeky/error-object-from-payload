@@ -9,6 +9,13 @@
 - `verboseLog()` method on `ErrorObjectFromPayload` — the base `ErrorObject` removed it in 1.2.1, but it's still useful
   here for logging `nextErrors`
 
+### Fixed
+
+- Fixed string fallback bug in `buildSummaryFromObject` — `objectToParse === maybeObject` comparison was always false
+- Fixed double closing brace in error template literals
+- Fixed JSDoc referencing non-existent `setNextErrors()` method
+- Simplified `_log()` with single `LOG_METHOD` null check
+
 ### Changed
 
 - Updated `@smbcheeky/error-object` dependency to `1.2.1`
