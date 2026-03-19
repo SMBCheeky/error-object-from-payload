@@ -1,3 +1,8 @@
+export let SHOW_ERROR_LOGS = true;
+export const setShowErrorLogs = (value: boolean) => {
+  SHOW_ERROR_LOGS = value;
+};
+
 /**
  * For customizing the paths, please make sure to use the {@link addPrefixPathVariants} function to also add the `error.` prefixed paths to the pathTo... arrays used in the {@link ErrorObjectBuildOptions} type.
  */

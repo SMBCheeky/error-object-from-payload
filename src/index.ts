@@ -6,15 +6,23 @@ import {
   ErrorObjectErrorResult,
   ErrorObjectProcessingError,
   ErrorSummary,
+  SHOW_ERROR_LOGS,
+  setShowErrorLogs,
 } from './utils';
 
 export * from './utils';
 
 /**
  * The {@link ErrorObjectFromPayload} class is an alternative way to create an {@link ErrorObject} from anything
- * resembling an error, even request payloads. It also chains errors using the `.setNextErrors()` method.
+ * resembling an error, even request payloads. It also chains errors using the `nextErrors` property.
  */
 export class ErrorObjectFromPayload extends ErrorObject {
+  static get SHOW_ERROR_LOGS() {
+    return SHOW_ERROR_LOGS;
+  }
+  static set SHOW_ERROR_LOGS(value: boolean) {
+    setShowErrorLogs(value);
+  }
   static DEFAULT_FALLBACK_TAG = 'fallback-error-object';
 
   nextErrors?: ErrorObjectFromPayload[];
@@ -42,7 +50,7 @@ export class ErrorObjectFromPayload extends ErrorObject {
       } catch (error) {
         super({
           code: 'INT-1',
-          message: `Error during checkInputForInitialObject(). Details: ${error?.toString?.() ?? ErrorObject.GENERIC_MESSAGE}}`,
+          message: `Error during checkInputForInitialObject(). Details: ${error?.toString?.() ?? ErrorObject.GENERIC_MESSAGE}`,
           tag: ErrorObjectFromPayload.DEFAULT_FALLBACK_TAG,
           raw: {
             error,
@@ -102,7 +110,7 @@ export class ErrorObjectFromPayload extends ErrorObject {
       } catch (error) {
         super({
           code: 'INT-2',
-          message: `Error during processErrorObjectResult(). Details: ${error?.toString?.() ?? ErrorObject.GENERIC_MESSAGE}}`,
+          message: `Error during processErrorObjectResult(). Details: ${error?.toString?.() ?? ErrorObject.GENERIC_MESSAGE}`,
           tag: ErrorObjectFromPayload.DEFAULT_FALLBACK_TAG,
           raw: {
             error,
@@ -120,47 +128,39 @@ export class ErrorObjectFromPayload extends ErrorObject {
       tag: ErrorObject.GENERIC_TAG,
     });
 
+  verboseLog(logTag: string) {
+    return this._log(logTag, 'verbose');
+  }
+
   protected _log(logTag: string, logLevel: 'log' | 'debug' | 'verbose') {
+    if (!ErrorObject.LOG_METHOD) return this;
     const logForThis =
       logLevel === 'verbose' ? this.toVerboseString() : logLevel === 'debug' ? this.toDebugString() : this.toString();
     if (Array.isArray(this.nextErrors) && this.nextErrors.length > 0) {
       let row = 1;
-      ErrorObject.LOG_METHOD &&
-        typeof ErrorObject.LOG_METHOD === 'function' &&
-        ErrorObject.LOG_METHOD(`[${logTag}][${row}]`, logForThis);
+      ErrorObject.LOG_METHOD(`[${logTag}][${row}]`, logForThis);
       for (const error of this.nextErrors) {
         row++;
-        ErrorObject.LOG_METHOD &&
-          typeof ErrorObject.LOG_METHOD === 'function' &&
-          ErrorObject.LOG_METHOD(
-            `[${logTag}][${row}]`,
-            logLevel === 'verbose'
-              ? error.toVerboseString()
-              : logLevel === 'debug'
-                ? error.toDebugString()
-                : error.toString(),
-          );
+        ErrorObject.LOG_METHOD(
+          `[${logTag}][${row}]`,
+          logLevel === 'verbose'
+            ? error.toVerboseString()
+            : logLevel === 'debug'
+              ? error.toDebugString()
+              : error.toString(),
+        );
       }
     } else {
-      ErrorObject.LOG_METHOD &&
-        typeof ErrorObject.LOG_METHOD === 'function' &&
-        ErrorObject.LOG_METHOD(`[${logTag}]`, logForThis);
+      ErrorObject.LOG_METHOD(`[${logTag}]`, logForThis);
     }
     return this;
   }
 
   toVerboseString() {
-    return (
-      this.toDebugString() +
-      `\n${JSON.stringify(
-        {
-          raw: this.raw,
-          nextErrors: this.nextErrors,
-        },
-        null,
-        2,
-      )}`
-    );
+    if (Array.isArray(this.nextErrors) && this.nextErrors.length > 0) {
+      return this.toDebugString() + `\n[NEXT_ERRORS] ${JSON.stringify(this.nextErrors, null, 2)}`;
+    }
+    return this.toDebugString();
   }
 
   /**

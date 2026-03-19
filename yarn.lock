@@ -284,10 +284,10 @@
   resolved "https://registry.yarnpkg.com/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.55.1.tgz#f79437939020b83057faf07e98365b1fa51c458b"
   integrity sha512-SPEpaL6DX4rmcXtnhdrQYgzQ5W2uW3SCJch88lB2zImhJRhIIK44fkUrgIV/Q8yUNfw5oyZ5vkeQsZLhCb06lw==
 
-"@smbcheeky/error-object@1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@smbcheeky/error-object/-/error-object-1.2.0.tgz#e2688fa66a7655edfcdd2b4c0780cc494d46d5c1"
-  integrity sha512-MODjlf2GhUxZhKBPm60RMSbIe2R9neFemxgTXfNQsrk6GXGrQSaq1NeAnnEK6DIOiQS4QlGzr7UFraktUswRIQ==
+"@smbcheeky/error-object@1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@smbcheeky/error-object/-/error-object-1.2.1.tgz#cfa27c03bc1751ee4dc29abfcd17c8fdb411af39"
+  integrity sha512-Nl/n0AbRFihjyeDpJaEh72tgLdH0OWJtO1MTM6n4smA43kejnm7wUd6UttP9wxLsR0YIlP9yLZWhdgtdVYIHXQ==
 
 "@types/estree@1.0.8":
   version "1.0.8"
