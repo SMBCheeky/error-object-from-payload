@@ -1,10 +1,10 @@
-import { ErrorObject } from '@smbcheeky/error-object';
 import {
   DEFAULT_BUILD_OPTIONS,
   ErrorObjectBuildOptions,
   ErrorObjectErrorResult,
   ErrorObjectTransformState,
   ErrorSummary,
+  SHOW_ERROR_LOGS,
 } from '../utils';
 import { __processAllValuesFromPaths } from './valuesFromPaths';
 
@@ -56,8 +56,8 @@ export const buildSummariesFromObject = (
 
     return summaries;
   } catch (generalError) {
-    ErrorObject.SHOW_ERROR_LOGS &&
-      console.log('[ErrorObject]', 'Error during buildSummariesFromObject():', generalError);
+    SHOW_ERROR_LOGS &&
+      console.log('[ErrorObjectFromPayload]', 'Error during buildSummariesFromObject():', generalError);
     return ['generalBuildSummariesFromObjectError'];
   }
 };
@@ -86,7 +86,7 @@ export const buildSummaryFromObject = (
       } catch {
         // At least we tried :)
       }
-      if (objectToParse === maybeObject) {
+      if (objectToParse === undefined) {
         objectToParse = { code: 'unknown', message: maybeObject };
       }
     }
@@ -201,7 +201,8 @@ export const buildSummaryFromObject = (
       },
     };
   } catch (generalError) {
-    ErrorObject.SHOW_ERROR_LOGS && console.log('[ErrorObject]', 'Error during buildSummaryFromObject():', generalError);
+    SHOW_ERROR_LOGS &&
+      console.log('[ErrorObjectFromPayload]', 'Error during buildSummaryFromObject():', generalError);
     return 'generalBuildSummaryFromObjectError';
   }
 };

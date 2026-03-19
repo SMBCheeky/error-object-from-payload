@@ -1,6 +1,8 @@
 import { ErrorObject } from '@smbcheeky/error-object';
 import { addPrefixPathVariants, ErrorObjectTransformState, ErrorObjectFromPayload } from '@smbcheeky/error-object-from-payload';
 
+ErrorObject.INCLUDE_DOMAIN_IN_STRING = true;
+
 /*
  *
  * If you reached this file, you probably didn't read the README.md file.
@@ -21,129 +23,44 @@ import { addPrefixPathVariants, ErrorObjectTransformState, ErrorObjectFromPayloa
 const runStoryExample = () => {
   console.log('\n-Story Example------------------------------------------------------------------------------\n');
 
-  // {
-  //     'errors': [
-  //       {
-  //         'message': 'Cannot query field "username" on type "User"',
-  //         'locations': [
-  //           {
-  //             'line': 2,
-  //             'column': 3,
-  //           },
-  //         ],
-  //         'extensions': {
-  //           'code': 'GRAPHQL_VALIDATION_FAILED',
-  //         },
-  //       },
-  //     ],
-  //     'data': null,
-  //   }
+  // Say we get this GraphQL error response:
+  // { errors: [{ message: '...', locations: [...], extensions: { code: 'GRAPHQL_VALIDATION_FAILED' } }], data: null }
   //
-  // Here are a couple of easy steps to map out a new error object:
-  // 1. Before you start, check the result of `new ErrorObjectFromPayload(object).log('LOG')` and see
-  //    what it returns. This will help you understand if you need to make any adjustments.
-  //      - It seems there is no log "[LOG]" in the console, so we continue with the next step.
+  // Steps to map it out:
   //
-  // 2. Continue with `new ErrorObjectFromPayload(object).verboseLog('LOG')` and see what it returns.
-  //  "processingErrors": [
-  //     {
-  //       "errorCode": "unknownCodeOrMessage",
-  //       "summary": {
-  //         "didDetectErrorsArray": true,
-  //         "input": {
-  //           "message": "Cannot query field \"username\" on type \"User\"",
-  //           "locations": [
-  //             {
-  //               "line": 2,
-  //               "column": 3
-  //             }
-  //           ],
-  //           "extensions": {
-  //             "code": "GRAPHQL_VALIDATION_FAILED"
-  //           }
-  //         },
-  //         "path": "errors",
-  //         "value": {
-  //           "message": {
-  //             "path": "message",
-  //             "beforeTransform": "Cannot query field \"username\" on type \"User\"",
-  //             "value": "Cannot query field \"username\" on type \"User\""
-  //           }
-  //         }
-  //       }
-  //     }
-  //   ],
+  // 1. Start with `new ErrorObjectFromPayload(object).log('LOG')` to see what comes out.
+  //      - Nothing logged? That means something went wrong during parsing.
   //
-  // 3. Observe the processingErrors object, returned by .debugLog(). You can see that the error object
-  //    was able to find the error message but couldn't find the code. But something seems weird.
-  //    I can see `didDetectErrorsArray` is true and an ` errorCode `
-  //    of type `ErrorObjectErrorResult`. The error code is a string that describes the error that
-  //    occurred during processing. In this case, it's `unknownCodeOrMessage`.
-  //      - Looking at the object, we can see that our error is
-  //      actually an array of errors of length 1 - meaning we could have multiple errors in the array.
+  // 2. Try `.debugLog('LOG')` instead - check `processingErrors` in the output.
+  //      - We see `unknownCodeOrMessage` and `didDetectErrorsArray: true`.
+  //      - The library found the message but not the code. Makes sense - the code is nested in `extensions`.
   //
-  // 4. Ok, so I have a choice to make... set pathToErrors to empty, and then
-  //    map only the first error... Or, adjust the paths to be relative to the objects inside the
-  //    detected errors array. Let's try and respect the library's design principles and recommendation
-  //    and go with the second option :)
-  //      - Setting the options to { pathToCode: ['extensions.code'], pathToMessage: ['message'], }
+  // 3. We have a choice: flatten the errors array ourselves, or adjust paths to be relative
+  //    to objects inside the detected array. Let's go with the second option :)
+  //      - { pathToCode: ['extensions.code'], pathToMessage: ['message'] }
   //
-  // 5. Now let's see:
-  //  [1] Cannot query field "username" on type "User" [GRAPHQL_VALIDATION_FAILED]
-  //  {
-  //    "code": "GRAPHQL_VALIDATION_FAILED",
-  //    "message": "Cannot query field \"username\" on type \"User\""
-  //  }
+  // 4. Now the code and message are mapped. But `locations` has useful info too.
+  //      - Add { pathToDetails: ['locations'] }
   //
-  // 6. Awesome, that's what we wanted. But what about the other information in the error object, like
-  //    the `locations' field... it seems important. Let's try to save it as well.
-  //      - Adding to options { ...options, pathToDetails: ['locations'] }
+  // 5. What about `data: null`? If data is not null, maybe the errors are just warnings.
+  //    Don't guess - check with your backend dev and API docs.
+  //      - { checkInputObjectForValues: { data: { value: null, exists: true } } }
   //
-  // 7. Now let's see:
-  //  [1] Cannot query field "username" on type "User" [GRAPHQL_VALIDATION_FAILED]
-  //  {
-  //    "code": "GRAPHQL_VALIDATION_FAILED",
-  //    "message": "Cannot query field \"username\" on type \"User\"",
-  //    "details": "[{\"line\":2,\"column\":3}]"
-  //  }
-  // 8. That's better, but we can do better. Working with a few APIs, I can also see a `data` === null field.
-  //    Now... I don't think I should save it, but what if the errors that are returned from the backend are
-  //    supposed to be treated as warnings when data is not null? Always check with your API docs and your
-  //    backend developer about this, as it should not be a guessing game.
+  // 6. 13 hours later... I was right! But relying on `data === null` feels fragile.
+  //    Asked the backend dev to add `error: true` to error responses.
+  //      - He delivered! Now: { checkInputObjectForValues: { error: { value: true, exists: true } } }
   //
-  // 9. 13 hours later... I was right! Now let's make sure we don't parse errors when data is not null. If we
-  //    check the `ErrorObjectBuildOptions` we can see 3 options: `checkInputObjectForValues`, `checkInputObjectForTypes`
-  //    and `checkInputObjectForKeys`. We can use `checkInputObjectForValues` to check if the `data` field is
-  //    null, and if so.
-  //      - Adding to options { ...options, checkInputObjectForValues: { data: { value: null, exists: true } } }
+  // 7. Added another error to make sure arrays work - they do!
+  //    Time to switch from debugLog to log :)
   //
-  // 10. Nice! Now everything is set up and my error will only be parsed when data field is null. While the logic
-  //     for it works, It seems odd that data object can influence the parsing of the error object. I'm not sure
-  //     if this is a good practice... I know, I'll ask my backend developer to add an 'error: true' value so that
-  //     I can know for sure if the response is an error or not.
-  //      - He updated the backend! Now I can replace use the `error: true` value to know if the response is an error or not
-  //      - Updating options { ...options, checkInputObjectForValues: { error: { value: true, exists: true } } }
-  //
-  // 11. Ok now I'm done right? Hmm, I want to know if my code will work with more errors
-  //      - Added another error and everything works!
-  //      - I think now I can also turn off the verbose logs :)
-  //
-  // 12. Output:
+  // Output:
   //  [LOG][1] Cannot query field "username" on type "User" [GRAPHQL_VALIDATION_FAILED]
-  //  {
-  //    "code": "GRAPHQL_VALIDATION_FAILED",
-  //    "message": "Cannot query field \"username\" on type \"User\"",
-  //    "details": "[{\"line\":2,\"column\":3}]"
-  //  }
+  //  [DEBUG] { "code": "GRAPHQL_VALIDATION_FAILED", "message": "...", "details": "...", "raw": { ... } }
   //  [LOG][2] Cannot query field "email" on type "User" [GRAPHQL_VALIDATION_FAILED]
-  //  {
-  //    "code": "GRAPHQL_VALIDATION_FAILED",
-  //    "message": "Cannot query field \"email\" on type \"User\"",
-  //    "details": "[{\"line\":5,\"column\":6}]"
-  //  }
+  //  [DEBUG] { "code": "GRAPHQL_VALIDATION_FAILED", "message": "...", "details": "...", "raw": { ... } }
   //
-  // 12. Stand-up and marvel at the code that should've taken 5 minutes at most to complete and instead took 2 days :/
-  //     - I'm pretty sure next time we'll both do better ;)
+  // 8. Marvel at the code that should've taken 5 minutes and instead took 2 days :/
+  //    I'm pretty sure next time we'll both do better ;)
 
   new ErrorObjectFromPayload(
     {
@@ -187,16 +104,18 @@ const runStoryExample = () => {
 
   // Story Example output:
   // [LOG][1] Cannot query field "username" on type "User" [GRAPHQL_VALIDATION_FAILED]
-  // {
+  // [DEBUG] {
   //   "code": "GRAPHQL_VALIDATION_FAILED",
   //   "message": "Cannot query field \"username\" on type \"User\"",
-  //   "details": "[{\"line\":2,\"column\":3}]"
+  //   "details": "[{\"line\":2,\"column\":3}]",
+  //   "raw": { ... }
   // }
   // [LOG][2] Cannot query field "email" on type "User" [GRAPHQL_VALIDATION_FAILED]
-  // {
+  // [DEBUG] {
   //   "code": "GRAPHQL_VALIDATION_FAILED",
   //   "message": "Cannot query field \"email\" on type \"User\"",
-  //   "details": "[{\"line\":5,\"column\":6}]"
+  //   "details": "[{\"line\":5,\"column\":6}]",
+  //   "raw": { ... }
   // }
 };
 
@@ -265,30 +184,32 @@ const runExample1 = () => {
   // Example 1 output:
   //
   // [1] Something went wrong. Please try again. [update/generic-again]
-  // {
+  // [DEBUG] {
   //   "code": "generic-again",
   //   "message": "Something went wrong. Please try again.",
-  //   "domain": "update"
-  // }
-  // {
-  //   "processingErrors": [],
-  //   "summary": {
-  //     "input": {
-  //       "code": "generic-again"
-  //     },
-  //     "value": {
-  //       "code": {
-  //         "path": "code",
-  //         "beforeTransform": "generic-again",
-  //         "value": "generic-again"
-  //       },
-  //       "message": {
-  //         "value": "Something went wrong. Please try again."
-  //       },
-  //     }
-  //   },
+  //   "domain": "update",
   //   "raw": {
-  //     "code": "generic-again"
+  //     "processingErrors": [],
+  //     "summary": [
+  //       {
+  //         "input": {
+  //           "code": "generic-again"
+  //         },
+  //         "value": {
+  //           "code": {
+  //             "path": "code",
+  //             "beforeTransform": "generic-again",
+  //             "value": "generic-again"
+  //           },
+  //           "message": {
+  //             "value": "Something went wrong. Please try again."
+  //           }
+  //         }
+  //       }
+  //     ],
+  //     "value": {
+  //       "code": "generic-again"
+  //     }
   //   }
   // }
 };
@@ -377,42 +298,44 @@ const runExample3 = () => {
   // into the final list of paths [ 'context.reason', 'error.context.reason' ]
   //
   // [] Please make sure your battery charge is above 75% before proceeding. [update-software/battery-low]
-  // {
+  // [DEBUG] {
   //   "code": "battery-low",
   //   "message": "Please make sure your battery charge is above 75% before proceeding.",
-  //   "domain": "update-software"
-  // }
-  // {
-  //   "processingErrors": [],
-  //   "summary": {
-  //     "input": {
+  //   "domain": "update-software",
+  //   "raw": {
+  //     "processingErrors": [],
+  //     "summary": [
+  //       {
+  //         "input": {
+  //           "code": "declined",
+  //           "error": {
+  //             "message": "Please make sure your battery charge is above 75% before proceeding.",
+  //             "context": {
+  //               "reason": "battery-low"
+  //             }
+  //           }
+  //         },
+  //         "value": {
+  //           "code": {
+  //             "path": "error.context.reason",
+  //             "beforeTransform": "battery-low",
+  //             "value": "battery-low"
+  //           },
+  //           "message": {
+  //             "path": "error.message",
+  //             "beforeTransform": "Please make sure your battery charge is above 75% before proceeding.",
+  //             "value": "Please make sure your battery charge is above 75% before proceeding."
+  //           }
+  //         }
+  //       }
+  //     ],
+  //     "value": {
   //       "code": "declined",
   //       "error": {
   //         "message": "Please make sure your battery charge is above 75% before proceeding.",
   //         "context": {
   //           "reason": "battery-low"
   //         }
-  //       }
-  //     },
-  //     "value": {
-  //       "code": {
-  //         "path": "error.context.reason",
-  //         "beforeTransform": "battery-low",
-  //         "value": "battery-low"
-  //       },
-  //       "message": {
-  //         "path": "error.message",
-  //         "beforeTransform": "Please make sure your battery charge is above 75% before proceeding.",
-  //         "value": "Please make sure your battery charge is above 75% before proceeding."
-  //       },
-  //     }
-  //   },
-  //   "raw": {
-  //     "code": "declined",
-  //     "error": {
-  //       "message": "Please make sure your battery charge is above 75% before proceeding.",
-  //       "context": {
-  //         "reason": "battery-low"
   //       }
   //     }
   //   }
@@ -451,10 +374,11 @@ const runExample4 = () => {
   // Example 4 output:
   //
   // [?] Please make sure your battery charge is above 75% before proceeding. [update/battery-low]
-  // {
+  // [DEBUG] {
   //   "code": "battery-low",
   //   "message": "Please make sure your battery charge is above 75% before proceeding.",
-  //   "domain": "update"
+  //   "domain": "update",
+  //   "raw": { ... }
   // }
 };
 
@@ -556,22 +480,13 @@ const runExample5 = () => {
   // When dynamic fields are involved, it is your job to decide how to handle them.
   // This library won't do black magic, by design, but it can hide a lot of things in plain sight :)
 
-  // Story Example output:
+  // Example 5 output:
   // [1] Username is required [Validation failed]
-  // {
-  //   "code": "Validation failed",
-  //   "message": "Username is required"
-  // }
+  // [DEBUG] { "code": "Validation failed", "message": "Username is required", "raw": { ... } }
   // [2] Username is required [Validation failed]
-  // {
-  //   "code": "Validation failed",
-  //   "message": "Username is required"
-  // }
+  // [DEBUG] { "code": "Validation failed", "message": "Username is required", "raw": { ... } }
   // [3] Username is required [Validation failed]
-  // {
-  //   "code": "Validation failed",
-  //   "message": "Username is required"
-  // }
+  // [DEBUG] { "code": "Validation failed", "message": "Username is required", "raw": { ... } }
 };
 
 const runExample6 = () => {
@@ -644,17 +559,9 @@ const runExample6 = () => {
   // Example 6 output:
   //
   // [LOG] Invalid input data [400]
-  // {
-  //   "code": "400",
-  //   "numberCode": 400,
-  //   "message": "Invalid input data"
-  // }
+  // [DEBUG] { "code": "400", "numberCode": 400, "message": "Invalid input data", "raw": { ... } }
   // [LOG] Invalid input data [400]
-  // {
-  //   "code": "400",
-  //   "numberCode": 400,
-  //   "message": "Invalid input data"
-  // }
+  // [DEBUG] { "code": "400", "numberCode": 400, "message": "Invalid input data", "raw": { ... } }
 };
 
 const runExample7 = () => {
@@ -699,25 +606,13 @@ const runExample7 = () => {
   // Example 7 output:
   //
   // [LOG] The email address is badly formatted. [auth/invalid-email]
-  // {
-  //   "code": "auth/invalid-email",
-  //   "message": "The email address is badly formatted."
-  // }
+  // [DEBUG] { "code": "auth/invalid-email", "message": "The email address is badly formatted.", "raw": { ... } }
   // [LOG][1] The email address is badly formatted. [auth/invalid-email]
-  // {
-  //   "code": "auth/invalid-email",
-  //   "message": "The email address is badly formatted."
-  // }
+  // [DEBUG] { "code": "auth/invalid-email", "message": "The email address is badly formatted.", "raw": { ... } }
   // [LOG][2] The phone number is invalid. [auth/invalid-phone number]
-  // {
-  //   "code": "auth/invalid-phone number",
-  //   "message": "The phone number is invalid."
-  // }
+  // [DEBUG] { "code": "auth/invalid-phone number", "message": "The phone number is invalid.", "raw": { ... } }
   // [LOG][3] Access unauthorized. [unauthorized]
-  // {
-  //   "code": "unauthorized",
-  //   "message": "Access unauthorized."
-  // }
+  // [DEBUG] { "code": "unauthorized", "message": "Access unauthorized.", "raw": { ... } }
 };
 
 const runExample8 = () => {
@@ -754,11 +649,7 @@ const runExample8 = () => {
   // Example 8 output:
   //
   // [LOG] Unauthorized - Invalid or expired token. [invalid-auth]
-  // {
-  //   "code": "invalid-auth",
-  //   "message": "Unauthorized - Invalid or expired token.",
-  //   "details": "https://api.twitter.com/2/problems/invalid-auth"
-  // }
+  // [DEBUG] { "code": "invalid-auth", "message": "Unauthorized - Invalid or expired token.", "details": "https://api.twitter.com/2/problems/invalid-auth", "raw": { ... } }
 };
 
 const runExample9 = () => {
@@ -801,16 +692,9 @@ const runExample9 = () => {
   // Example 9 output:
   //
   // [LOG] The email field is required. [invalid-data]
-  // {
-  //   "code": "invalid-data",
-  //   "message": "The email field is required."
-  // }
+  // [DEBUG] { "code": "invalid-data", "message": "The email field is required.", "raw": { ... } }
   // [LOG] The given data was invalid. [invalid-data]
-  // {
-  //   "code": "invalid-data",
-  //   "message": "The given data was invalid.",
-  //   "details": "{\"email\":[\"The email field is required.\",\"The email must be a valid email address.\"],\"password\":[\"The password field is required.\"]}"
-  // }
+  // [DEBUG] { "code": "invalid-data", "message": "The given data was invalid.", "details": "...", "raw": { ... } }
 };
 
 const runExample10 = () => {
@@ -852,18 +736,12 @@ const runExample10 = () => {
   // Example 10 AI output:
   //
   // [LOG] AdmissionReview/admission.k8s.io [403]
-  // {
-  //   "code": "403",
-  //   "message": "Admission webhook denied the request due to policy violation."
-  // }
+  // [DEBUG] { "code": "403", "message": "Admission webhook denied the request due to policy violation." }
 
   // Example 10 actual output:
   //
   // [LOG] Admission webhook denied the request due to policy violation. [AdmissionReview/admission.k8s.io/v1]
-  // {
-  //   "code": "AdmissionReview/admission.k8s.io/v1",
-  //   "message": "Admission webhook denied the request due to policy violation."
-  // }
+  // [DEBUG] { "code": "AdmissionReview/admission.k8s.io/v1", "message": "Admission webhook denied the request due to policy violation.", "raw": { ... } }
 };
 
 const runExample11 = () => {
@@ -892,10 +770,7 @@ const runExample11 = () => {
   // Example 11 output:
   //
   // [LOG] User not found [USER_NOT_FOUND]
-  // {
-  //   "code": "USER_NOT_FOUND",
-  //   "message": "User not found"
-  // }
+  // [DEBUG] { "code": "USER_NOT_FOUND", "message": "User not found", "raw": { ... } }
 };
 
 const runExample12 = () => {
@@ -908,17 +783,9 @@ const runExample12 = () => {
   // Example 12 output:
   //
   // [LOG] Something went wrong. [auth]
-  // {
-  //   "code": "",
-  //   "message": "Something went wrong.",
-  //   "domain": "auth"
-  // }
+  // [DEBUG] { "code": "", "message": "Something went wrong.", "domain": "auth" }
   // [LOG] Something went wrong [auth]
-  // {
-  //   "code": "",
-  //   "message": "Something went wrong",
-  //   "domain": "auth"
-  // }
+  // [DEBUG] { "code": "", "message": "Something went wrong", "domain": "auth", "raw": { ... } }
 };
 
 console.log('\n\n\n\n\n\n');
