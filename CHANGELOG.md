@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0
+
+- Update `@smbcheeky/error-object` dependency to `^1.2.1` from `1.2.1`
+
 ## 1.2.1
 
 ### Added
